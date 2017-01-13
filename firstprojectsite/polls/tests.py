@@ -6,6 +6,15 @@ from django.urls import reverse
 
 from .models import Question
 
+def create_question(question_text, days):
+    """
+    Creates a question with the given `question_text` and published the
+    given number of `days` offset to now (negative for questions published
+    in the past, positive for questions that have yet to be published).
+    """
+    time = timezone.now() + datetime.timedelta(days=days)
+    return Question.objects.create(question_text=question_text, pub_date=time)
+
 class QuestionIndexDetailTests(TestCase):
     def test_detail_view_with_a_future_question(self):
         """
@@ -43,10 +52,10 @@ class QuestionViewTests(TestCase):
         index page.
         """
         create_question(question_text="Past question.", days=-30)
-        response = self.client.get(reserve('polls:index'))
+        response = self.client.get(reverse('polls:index'))
         self.assertQuerysetEqual(
             response.context['latest_question_list'],
-            ['<Question: Past question. >']
+            ['<Question: Past question.>']
         )
 
     def test_index_view_with_a_future_question(self):
@@ -85,15 +94,6 @@ class QuestionViewTests(TestCase):
         )
 
 class QuestionMethodTests(TestCase):
-
-    def create_question(question_text, days):
-        """
-        Creates a question with the given `question_text` and published the
-        given number of `days` offset to now (negative for questions published
-        in the past, positive for questions that have yet to be published).
-        """
-        time = timezone.now() + datetime.timedelta(days=days)
-        return Question.objects.create(question_text=question_text, pub_date=time)
 
     def test_was_published_recently_with_future_question(self):
         """
